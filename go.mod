@@ -3,7 +3,6 @@ module github.com/hewlettpackard/hpegl-provider-lib
 go 1.15
 
 require (
-	github.com/HewlettPackard/hpegl-vmaas-terraform-resources v0.1.0
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.0
 	github.com/spf13/viper v1.9.0

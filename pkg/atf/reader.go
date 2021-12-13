@@ -11,7 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/constants"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/spf13/viper"
 )
@@ -52,7 +51,7 @@ func (r *reader) skipf(format string, v ...interface{}) {
 
 func (r *reader) getViperConfig(version string) *viper.Viper {
 	tfName := getLocalName(r.name)
-	if path := os.Getenv(constants.AccTestPathKey); path != "" {
+	if path := os.Getenv(accTestPath); path != "" {
 		accTestPath = path
 	}
 	var postfix string
