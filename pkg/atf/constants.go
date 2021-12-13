@@ -4,10 +4,6 @@ const providerStanza = `
 	provider hpegl {
 		vmaas {
 		}
-		caas {
-		}
-		metal {
-		}
 	}
 `
 
