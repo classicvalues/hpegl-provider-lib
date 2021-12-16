@@ -237,27 +237,7 @@ the user on the console, who can take action (i.e. add a service block to the pr
 
 In the hpegl provider a slice of service implementations of this interface is created and iterated over to
 populate the map[string]interface{} that is provided as the meta argument to service provider code by
-hpegl.  The slice is defined as follows:
-
-<!-- Donesn't exist inside vmaas provider -->
-
-```go
-package clients
-
-import (
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/client"
-
-	clicaas "github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/client"
-)
-
-func InitialiseClients() []client.Initialisation {
-	return []client.Initialisation{
-		clicaas.InitialiseClient{},
-	}
-}
-```
-
-This slice is iterated over as follows:
+hpegl.  This slice is iterated over as follows:
 
 ```go
 package client
@@ -266,8 +246,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
-
-	quake "github.com/quattronetworks/quake-client/pkg/terraform/configuration"
 
 	"github.com/hpe-hcss/terraform-provider-hpegl/internal/services/clients"
 )
@@ -588,30 +566,6 @@ terraform.  Note the following:
     return an error if there is no service block.  See [earlier](#getclientfrommetamap-function) for
     the implications of using a service block.
 
-### Use in hpegl provider
-
-The hpegl provider defines a slice including individual service implementations of the ServiceRegistration
-interface that is passed-in to provider.NewProviderFunc:
-
-<!-- Doesn't exist in vmaas either  -->
-```go
-package resources
-
-import (
-	"github.com/hewlettpackard/hpegl-provider-lib/	"
-
-	resquake "github.com/quattronetworks/quake-client/pkg/terraform/registration"
-
-	rescaas "github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/resources"
-)
-
-func SupportedServices() []registration.ServiceRegistration {
-	return []registration.ServiceRegistration{
-		rescaas.Registration{},
-		resquake.Registration{},
-	}
-}
-```
 
 ## pkg/token
 
