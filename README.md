@@ -296,36 +296,6 @@ func NewClientMap(config provider.ConfigData) (map[string]interface{}, diag.Diag
 
 ```
 
-## pkg/gltform
-
-This package provides utilities to read and parse a .gltform file.  The .gltform file is primarily used to share
-metal/Quake information with the metal/Quake provider code.  It is also used by Genesis tooling to share
-the IAM token with other services (CaaS at the moment).  It is TBD if we will persist with the use of the file
-as the provider is developed.
-
-The format of the .gltform file is:
-```go
-// Gljwt - the contents of the .gltform file
-type Gljwt struct {
-    // SpaceName is optional, and is only required for metal if we want to create a project
-    SpaceName string `yaml:"space_name,omitempty"`
-    // ProjectID - the metal/Quake project ID
-    ProjectID string `yaml:"project_id"`
-    // RestURL - the URL to be used for metal, at present it refers to a Quake portal URL
-    RestURL string `yaml:"rest_url"`
-    // Token - the GL IAM token
-    Token string `yaml:"access_token"`
-}
-```
-
-### Use in service provider repos
-
-The only use of this file is with the metal/Quake provider code.
-
-### Use in hpegl provider
-
-This package is used by the hpegl provider to build a .gltform for use with metal.
-
 ## pkg/provider
 
 This defines a number of functions used in creating the plugin.ProviderFunc object that is used to
@@ -345,17 +315,15 @@ package testutils
 import (
 	"context"
 
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/client"
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient"
-
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/client"
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/resources"
 )
 
 func ProviderFunc() plugin.ProviderFunc {
@@ -368,6 +336,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc { // noli
 		if err != nil {
 			return nil, diag.Errorf("error in creating client: %s", err)
 		}
+
 		// Initialise token handler
 		h, err := serviceclient.NewHandler(d)
 		if err != nil {
@@ -375,16 +344,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc { // noli
 		}
 
 		// Returning a map[string]interface{} with the Client from pkg.client at the
-		// key specified in that repo and with the token retrieve function at the key
-		// specified by the token package to ensure compatibility with the hpegl terraform
-		// provider.
+		// key specified in that repo to ensure compatibility with the hpegl terraform
+		// provider
 		return map[string]interface{}{
 			client.InitialiseClient{}.ServiceName(): cli,
 			common.TokenRetrieveFunctionKey:         retrieve.NewTokenRetrieveFunc(h),
 		}, nil
 	}
 }
-
 ```
 
 Note the following:
@@ -403,15 +370,33 @@ ProviderFunc() above can then be used to create a "dummy" service-specific provi
 package main
 
 import (
+	"context"
+	"flag"
+	"log"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/internal/test-utils"
+	testutils "github.com/HewlettPackard/hpegl-vmaas-terraform-resources/internal/test-utils"
 )
 
 func main() {
-	plugin.Serve(&plugin.ServeOpts{
+	var debugMode bool
+
+	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.Parse()
+	opts := &plugin.ServeOpts{
 		ProviderFunc: testutils.ProviderFunc(),
-	})
+	}
+	if debugMode {
+		err := plugin.Debug(context.Background(), "terraform.example.com/vmaas/hpegl", opts)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		return
+	}
+
+	plugin.Serve(opts)
 }
 ```
 
@@ -508,11 +493,9 @@ package resources
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/constants"
-
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/internal/resources"
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/constants"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
-
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/internal/resources"
 )
 
 // Assert that Registration implements the ServiceRegistration interface
@@ -525,24 +508,54 @@ func (r Registration) Name() string {
 }
 
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return nil
+	return map[string]*schema.Resource{
+		resources.DSNetwork:          resources.NetworkData(),
+		resources.DSNetworkType:      resources.NetworkTypeData(),
+		resources.DSNetworkPool:      resources.NetworkPoolData(),
+		resources.DSLayout:           resources.LayoutData(),
+		resources.DSGroup:            resources.GroupData(),
+		resources.DSPlan:             resources.PlanData(),
+		resources.DSCloud:            resources.CloudData(),
+		resources.DSResourcePool:     resources.ResourcePoolData(),
+		resources.DSDatastore:        resources.DatastoreData(),
+		resources.DSPowerSchedule:    resources.PowerScheduleData(),
+		resources.DSTemplate:         resources.TemplateData(),
+		resources.DSEnvironment:      resources.EnvironmentData(),
+		resources.DSNetworkInterface: resources.NetworkInterfaceData(),
+		resources.DSCloudFolder:      resources.CloudFolderData(),
+		resources.DSRouter:           resources.RouterData(),
+		resources.DSNetworkDomain:    resources.DomainData(),
+		resources.DSNetworkProxy:     resources.NetworkProxyData(),
+	}
 }
 
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"hpegl_caas_cluster_blueprint": resources.ClusterBlueprint(),
-		"hpegl_caas_cluster":           resources.Cluster(),
+		resources.ResInstance:                resources.Instances(),
+		resources.ResInstanceClone:           resources.InstancesClone(),
+		resources.ResNetwork:                 resources.Network(),
+		resources.ResRouter:                  resources.Router(),
+		resources.ResRouterNat:               resources.RouterNatRule(),
+		resources.ResRouterFirewallRuleGroup: resources.RouterFirewallRuleGroup(),
+		resources.ResRouterRoute:             resources.RouterRoute(),
+		resources.ResRouterBgpNeighbor:       resources.RouterBgpNeighbor(),
 	}
 }
 
 func (r Registration) ProviderSchemaEntry() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			constants.APIURL: {
+			constants.LOCATION: {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("HPEGL_CAAS_API_URL", ""),
-				Description: "The URL to use for the CaaS API, can also be set with the HPEGL_CAAS_API_URL env var",
+				DefaultFunc: schema.EnvDefaultFunc("HPEGL_VMAAS_LOCATION", ""),
+				Description: "Location of GL VMaaS Service, can also be set with the HPEGL_VMAAS_LOCATION env var.",
+			},
+			constants.SPACENAME: {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("HPEGL_VMAAS_SPACE_NAME", ""),
+				Description: "IAM Space name of the GL VMaaS Service, can also be set with the HPEGL_VMAAS_SPACE_NAME env var.",
 			},
 		},
 	}
