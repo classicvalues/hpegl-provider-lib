@@ -593,11 +593,12 @@ terraform.  Note the following:
 The hpegl provider defines a slice including individual service implementations of the ServiceRegistration
 interface that is passed-in to provider.NewProviderFunc:
 
+<!-- Doesn't exist in vmaas either  -->
 ```go
 package resources
 
 import (
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
+	"github.com/hewlettpackard/hpegl-provider-lib/	"
 
 	resquake "github.com/quattronetworks/quake-client/pkg/terraform/registration"
 
@@ -736,17 +737,15 @@ package testutils
 import (
 	"context"
 
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/client"
+	"github.com/HewlettPackard/hpegl-vmaas-terraform-resources/pkg/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient"
-
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/client"
-	"github.com/hpe-hcss/hpegl-caas-terraform-resources/pkg/resources"
 )
 
 func ProviderFunc() plugin.ProviderFunc {
@@ -759,6 +758,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc { // noli
 		if err != nil {
 			return nil, diag.Errorf("error in creating client: %s", err)
 		}
+
 		// Initialise token handler
 		h, err := serviceclient.NewHandler(d)
 		if err != nil {
@@ -766,9 +766,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc { // noli
 		}
 
 		// Returning a map[string]interface{} with the Client from pkg.client at the
-		// key specified in that repo and with the token retrieve function at the key
-		// specified by the token package to ensure compatibility with the hpegl terraform
-		// provider.
+		// key specified in that repo to ensure compatibility with the hpegl terraform
+		// provider
 		return map[string]interface{}{
 			client.InitialiseClient{}.ServiceName(): cli,
 			common.TokenRetrieveFunctionKey:         retrieve.NewTokenRetrieveFunc(h),
