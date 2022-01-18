@@ -25,7 +25,14 @@ type TokenResponse struct {
 	Scope       string `json:"scope"`
 }
 
-func GenerateToken(ctx context.Context, tenantID, clientID, clientSecret string, identityServiceURL string, httpClient tokenutil.HttpClient) (string, error) {
+func GenerateToken(
+	ctx context.Context,
+	tenantID,
+	clientID,
+	clientSecret string,
+	identityServiceURL string,
+	httpClient tokenutil.HttpClient,
+) (string, error) {
 	params := url.Values{}
 	params.Add("client_id", clientID)
 	params.Add("client_secret", clientSecret)

@@ -54,6 +54,7 @@ type resourceData interface {
 
 // NewHandler creates a new handler and returns the common.TokenChannelInterface interface
 // Param resourceData can be *schema.ResourceData or any model which implements resourceData
+//nolint:forcetypeassert
 func NewHandler(d resourceData, opts ...CreateOpt) (common.TokenChannelInterface, error) {
 	h := new(Handler)
 

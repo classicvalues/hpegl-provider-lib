@@ -1,4 +1,4 @@
-//(C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
 
 package tokenutil
 
@@ -33,15 +33,17 @@ type Token struct {
 	IsHPE            bool   `json:"isHPE"`
 }
 
+//nolint:stylecheck,golint,revive
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
 // DecodeAccessToken decodes the accessToken offline
+//nolint:gocritic
 func DecodeAccessToken(rawToken string) (Token, error) {
 	_, err := jose.ParseSigned(rawToken)
 	if err != nil {
-		return Token{}, fmt.Errorf("oidc: malformed jwt: %v", err)
+		return Token{}, fmt.Errorf("oidc: malformed jwt: %w", err)
 	}
 
 	// Throw out tokens with invalid claims before trying to verify the token. This lets
@@ -49,12 +51,14 @@ func DecodeAccessToken(rawToken string) (Token, error) {
 	payload, err := parseJWT(rawToken)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("oidc: malformed jwt: %v", err))
-		return Token{}, fmt.Errorf("oidc: malformed jwt: %v", err)
+
+		return Token{}, fmt.Errorf("oidc: malformed jwt: %w", err)
 	}
 	var token Token
 	if err := json.Unmarshal(payload, &token); err != nil {
 		log.Fatal(fmt.Sprintf("oidc: failed to unmarshal claims: %v", err))
-		return Token{}, fmt.Errorf("oidc: failed to unmarshal claims: %v", err)
+
+		return Token{}, fmt.Errorf("oidc: failed to unmarshal claims: %w", err)
 	}
 
 	if token.UserID != "" {
@@ -143,7 +147,8 @@ func parseJWT(p string) ([]byte, error) {
 	}
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		return nil, fmt.Errorf("oidc: malformed jwt payload: %v", err)
+		return nil, fmt.Errorf("oidc: malformed jwt payload: %w", err)
 	}
+
 	return payload, nil
 }

@@ -35,7 +35,14 @@ type TokenResponse struct {
 	AccessTokenOnly bool      `json:"accessTokenOnly"`
 }
 
-func GenerateToken(ctx context.Context, tenantID, clientID, clientSecret string, identityServiceURL string, httpClient tokenutil.HttpClient) (string, error) {
+func GenerateToken(
+	ctx context.Context,
+	tenantID,
+	clientID,
+	clientSecret string,
+	identityServiceURL string,
+	httpClient tokenutil.HttpClient,
+) (string, error) {
 	params := GenerateTokenInput{
 		TenantID:     tenantID,
 		ClientID:     clientID,
@@ -51,7 +58,6 @@ func GenerateToken(ctx context.Context, tenantID, clientID, clientSecret string,
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(string(b)))
-
 	if err != nil {
 		return "", err
 	}

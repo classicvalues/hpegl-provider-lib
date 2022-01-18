@@ -1,4 +1,4 @@
-//(C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
 
 package tokenutil
 
@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:scopelint
 func TestDecodeAccessToken(t *testing.T) {
 	type args struct {
 		rawToken string

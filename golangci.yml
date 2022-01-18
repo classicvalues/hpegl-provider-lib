@@ -35,8 +35,13 @@ linters:
     - gochecknoglobals
     - exhaustivestruct
     - forbidigo
+    - structcheck
     - testpackage
     - nolintlint
+    - dupl
+    - varnamelen
+    - tagliatelle
+    - ireturn
     # Temporarily disabling paralleltest
     - paralleltest
     #Temporarily disabling wrapcheck

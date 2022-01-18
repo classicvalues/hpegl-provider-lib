@@ -1,5 +1,6 @@
 // (C) Copyright 2021 Hewlett Packard Enterprise Development LP
 
+//nolint:structcheck
 package httpclient
 
 import (
@@ -71,7 +72,13 @@ func (h *testHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	return &http.Response{StatusCode: h.statusCode, Body: body}, nil
 }
 
-func createTestClient(identityServiceURL, passedInToken string, statusCode int, token interface{}, vendedServiceClient bool) *Client {
+func createTestClient(
+	identityServiceURL,
+	passedInToken string,
+	statusCode int,
+	token interface{},
+	vendedServiceClient bool,
+) *Client {
 	c := New(identityServiceURL, vendedServiceClient, passedInToken)
 	if token == nil {
 		c.httpClient = &testHTTPClient{

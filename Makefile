@@ -2,6 +2,7 @@
 #(C) Copyright 2019-2020 Hewlett Packard Enterprise Development LP
 # Inspiration from https://github.com/rightscale/go-boilerplate/blob/master/Makefile
 
+GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 # Stuff that needs to be installed globally (not in vendor)
 DEPEND=
 
@@ -51,10 +52,19 @@ really-clean clean-all cleanall: clean
 procs := $(shell grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 1)
 # TODO make --debug an option
 
-lint: vendor golangci-lint-config.yaml
-	@golangci-lint --version
-	golangci-lint run --config golangci-lint-config.yaml
-.PHONY: lint
+fmtcheck:
+	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+
+fmt:
+	@echo "==> Fixing source code with gofmt..."
+	gofmt -s -w $(GOFMT_FILES)
+
+tools:
+	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+
+lint:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run ./...
 
 testreport_dir := test-reports
 test:
@@ -70,4 +80,4 @@ coverage: vendor
 .PHONY: coverage
 
 all: lint test
-.PHONY: all
+.PHONY: tools all

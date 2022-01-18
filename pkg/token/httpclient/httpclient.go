@@ -24,6 +24,7 @@ type Client struct {
 func New(identityServiceURL string, vendedServiceClient bool, passedInToken string) *Client {
 	client := &http.Client{Timeout: 10 * time.Second}
 	identityServiceURL = strings.TrimRight(identityServiceURL, "/")
+
 	return &Client{
 		passedInToken:       passedInToken,
 		identityServiceURL:  identityServiceURL,
@@ -37,11 +38,13 @@ func (c *Client) GenerateToken(ctx context.Context, tenantID, clientID, clientSe
 	if c.passedInToken == "" {
 		if c.vendedServiceClient {
 			token, err := issuertoken.GenerateToken(ctx, tenantID, clientID, clientSecret, c.identityServiceURL, c.httpClient)
-			return token, err
-		} else {
-			token, err := identitytoken.GenerateToken(ctx, tenantID, clientID, clientSecret, c.identityServiceURL, c.httpClient)
+
 			return token, err
 		}
+
+		token, err := identitytoken.GenerateToken(ctx, tenantID, clientID, clientSecret, c.identityServiceURL, c.httpClient)
+
+		return token, err
 	}
 
 	// we have a passed-in token, return it
